@@ -1,5 +1,5 @@
-GCC=arm-xilinx-linux-gnueabi-gcc
-#GCC=gcc
+#GCC=arm-xilinx-linux-gnueabi-gcc
+GCC=gcc
 CFLAGS= --std=c99 -Iinclude
 SRC_DIR=src
 all:

@@ -69,9 +69,16 @@ void set_bit(volatile int *port, int pin, int value);
 void dds_bbspi_init( dds_bbspi_dev *dev , volatile int *port);
 
 // turn off all chip selects and set to idle state
-void dds_bbspi_disable( dds_bbspi_dev *dev);
+void dds_bbspi_idle( dds_bbspi_dev *dev);
 
 // write out the messags on all the channels then strobe IOUPDATE.
 void dds_bbspi_write( dds_bbspi_dev *dev );
 
+// use nanosleep to delay. simple wrapper.
+void dds_bbspi_delay( dds_bbspi_dev *dev);
 
+// 
+void dds_bbspi_strobe_bit(dds_bbspi_dev *dev, int pin);
+
+void dds_bbspi_shiftout_instruction(dds_bbspi_dev *dev);
+void dds_bbspi_shiftout_messages(dds_bbspi_dev *dev, int msg_len);

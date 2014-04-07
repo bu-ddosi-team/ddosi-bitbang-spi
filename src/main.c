@@ -15,19 +15,19 @@
 
 int main() {
 	int a;
-	int *port = &a;
+	volatile int *port = &a;
 
 	printf("Initializing DDS!");
 	dds_bbspi_dev dds_device;
 
 	dds_bbspi_init(&dds_device, port);
-	dds_device.ch_enable = DDS_ALL | DDS_EXTENDED_MESSAGE;
+	dds_device.ch_enable = DDS_CH0 | DDS_EXTENDED_MESSAGE;
 	dds_device.instruction = DDS_WRITE | DDS_CFR2;
 	dds_device.messages[0] = 0xff00ff00ff00ff00;
 	dds_device.messages[1] = 0xff00ff00ff00ff;
 	dds_device.messages[2] = 0xff00ff00ff00ff00;
 	dds_device.messages[3] = 0xff00ff00ff00ff;
-	dds_device.delay_interval_ts.tv_nsec = 500000L;
+	dds_device.delay_interval_ts.tv_nsec = 50000L;
 	dds_bbspi_write(&dds_device);
 	
 	return 0;
