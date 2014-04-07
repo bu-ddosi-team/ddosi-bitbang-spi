@@ -36,14 +36,14 @@
 #define DDS_POW 0x08
 #define DDS_ASF 0x09
 #define DDS_MULTI_SYNC 0x0A
-#define DDS_SINGLE_TONE_0 0x0E 
-#define DDS_SINGLE_TONE_1 0x0F
-#define DDS_SINGLE_TONE_2 0x10
-#define DDS_SINGLE_TONE_3 0x11
-#define DDS_SINGLE_TONE_4 0x12
-#define DDS_SINGLE_TONE_5 0x13
-#define DDS_SINGLE_TONE_6 0x14
-#define DDS_SINGLE_TONE_7 0x15
+#define DDS_PROFILE_0 0x0E 
+#define DDS_PROFILE_1 0x0F
+#define DDS_PROFILE_2 0x10
+#define DDS_PROFILE_3 0x11
+#define DDS_PROFILE_4 0x12
+#define DDS_PROFILE_5 0x13
+#define DDS_PROFILE_6 0x14
+#define DDS_PROFILE_7 0x15
 
 
 // Struct for maintianing information about the DDS SPI system
@@ -82,3 +82,6 @@ void dds_bbspi_strobe_bit(dds_bbspi_dev *dev, int pin);
 
 void dds_bbspi_shiftout_instruction(dds_bbspi_dev *dev);
 void dds_bbspi_shiftout_messages(dds_bbspi_dev *dev, int msg_len);
+
+uint64_t dds_form_profile(uint64_t asf, uint64_t pow, uint64_t ftw);
+uint32_t frequency2ftw(float f, float fs);
