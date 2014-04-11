@@ -17,9 +17,11 @@
 
 void set_bit(void *port, int pin, int value) {
 	if (value)
-		*(volatile int *)(port) |= (1<<pin);
+		*(volatile int *)(port) |= (volatile int)((1<<pin));
 	else
-		*(volatile int *)(port) &= ~(1<<pin);
+		*(volatile int *)(port) &= (volatile int)(~(1<<pin));
+//	*(volatile int *)(port) = (volatile int)(1<<16);
+//		*(volatile int *)(port) = (volatile int)(-1);
 }
 
 void dds_bbspi_idle( dds_bbspi_dev *dev) 
@@ -99,7 +101,7 @@ void dds_bbspi_write( dds_bbspi_dev *dev )
 
 	// Return bus to idle state
 	dds_bbspi_idle(dev);
-	
+
 	// Strobe IOUPDATE PIN to push data into active registers on AD9910
 	dds_bbspi_strobe_bit(dev, DDS_IOUPDATE_PIN);
 }
