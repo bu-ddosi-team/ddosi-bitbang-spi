@@ -48,7 +48,8 @@
 
 // Struct for maintianing information about the DDS SPI system
 typedef struct {
-	volatile int *port;
+//	volatile int *port;
+	void *port;
 
 	char ch_enable; // Lower 6 bits enable channels
 	                // Top bit (0x80) enables extended mode
@@ -63,10 +64,11 @@ typedef struct {
 } dds_bbspi_dev;
 
 // helper function for setting bits based on value
-void set_bit(volatile int *port, int pin, int value);
+void set_bit(void *port, int pin, int value);
 
 // intialize dds bitbanged spi device with the port.
-void dds_bbspi_init( dds_bbspi_dev *dev , volatile int *port);
+//void dds_bbspi_init( dds_bbspi_dev *dev , volatile int *port);
+void dds_bbspi_init( dds_bbspi_dev *dev , void *port);
 
 // turn off all chip selects and set to idle state
 void dds_bbspi_idle( dds_bbspi_dev *dev);

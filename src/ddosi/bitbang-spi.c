@@ -10,18 +10,16 @@
 #include "ddosi/bitbang-spi.h"
 #include <stdint.h>
 #include <stdio.h>
-
 #include <time.h>
 #include <unistd.h>
 #include <string.h>
 #include <math.h>
 
-void set_bit(volatile int *port, int pin, int value) {
-	if (value) {
-		*port |= (1<<pin);
-	} else {
-		*port &= ~(1<<pin);
-	}
+void set_bit(void *port, int pin, int value) {
+	if (value)
+		*(volatile int *)(port) |= (1<<pin);
+	else
+		*(volatile int *)(port) &= ~(1<<pin);
 }
 
 void dds_bbspi_idle( dds_bbspi_dev *dev) 
@@ -40,7 +38,7 @@ void dds_bbspi_delay( dds_bbspi_dev *dev)
 	nanosleep(&(dev->delay_interval_ts),NULL);
 }
 
-void dds_bbspi_init( dds_bbspi_dev *dev, volatile int *port)
+void dds_bbspi_init( dds_bbspi_dev *dev, void *port)
 {
 	// Disable all channels
 	dev->ch_enable = 0;
@@ -51,7 +49,7 @@ void dds_bbspi_init( dds_bbspi_dev *dev, volatile int *port)
 	// Initialize delay interval to desired delay interval
 	dev->delay_interval_ts.tv_sec = 0;
 	dev->delay_interval_ts.tv_nsec = 500000L;
-	
+
 	// Iniitialize messages to a known state
 	memset(dev->messages, 0, sizeof(dev->messages));
 
