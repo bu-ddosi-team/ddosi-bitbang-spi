@@ -49,8 +49,8 @@
 // Struct for maintianing information about the DDS SPI system
 typedef struct {
 //	volatile int *port;
-	void *port;
-
+	void *_port; 
+	unsigned int port;
 	char ch_enable; // Lower 6 bits enable channels
 	                // Top bit (0x80) enables extended mode
 	                // (send 64 bits instead of 32 for messages)
@@ -64,7 +64,7 @@ typedef struct {
 } dds_bbspi_dev;
 
 // helper function for setting bits based on value
-void set_bit(void *port, int pin, int value);
+void set_bit(dds_bbspi_dev *dev, unsigned int pin, uint64_t value);
 
 // intialize dds bitbanged spi device with the port.
 //void dds_bbspi_init( dds_bbspi_dev *dev , volatile int *port);
@@ -80,10 +80,10 @@ void dds_bbspi_write( dds_bbspi_dev *dev );
 void dds_bbspi_delay( dds_bbspi_dev *dev);
 
 // 
-void dds_bbspi_strobe_bit(dds_bbspi_dev *dev, int pin);
+void dds_bbspi_strobe_bit(dds_bbspi_dev *dev, unsigned int pin);
 
 void dds_bbspi_shiftout_instruction(dds_bbspi_dev *dev);
-void dds_bbspi_shiftout_messages(dds_bbspi_dev *dev, int msg_len);
+void dds_bbspi_shiftout_messages(dds_bbspi_dev *dev, unsigned int msg_len);
 
 uint64_t dds_form_profile(uint64_t asf, uint64_t pow, uint64_t ftw);
 uint32_t frequency2ftw(float f, float fs);

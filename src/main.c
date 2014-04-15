@@ -16,7 +16,7 @@
 #include <fcntl.h>    //PROT_READ, PROT_WRITE
 #include <unistd.h>   //device File IO
 
-#define DDS_FS (1E9)
+#define DDS_FS (500.0E6)
 
 //The GPIO bus address for the DDS signals
 unsigned long int PORT_ADDR=0x81210000;
@@ -25,9 +25,15 @@ unsigned long int PORT_ADDR=0x81210000;
 //for the RAM on the microZed is 4K, seems wasteful for 4 bytes,
 //but that's how it goes.
 #define MAP_SIZE 4096UL
-
+//#define NONARM_TEST
 int main() {
+	int enabled_channels = DDS_CH1;
+
 	//Open the RAM and map port to it.
+#ifdef NONARM_TEST
+	int a = 0;
+	void *port = (void *)&a;
+#else
 	int fd = open("/dev/mem", O_RDWR|O_SYNC);
 	if (fd == -1) {
 		printf("Unable to open memory.\n");
@@ -43,60 +49,122 @@ int main() {
 		close(fd);
 		return -1;
 	}
+#endif
 
 	printf("Initializing DDS!\n");
 	dds_bbspi_dev dds_device;
+	dds_bbspi_init(&dds_device, port);
+	set_bit(&dds_device, LED_STATUSB_PIN, 1);
+	set_bit(&dds_device, LED_STATUSG_PIN, 1);
+
+	dds_device.delay_interval_ts.tv_nsec = 10000L;
+
+
+
+	printf("Setting up DDS\n");
+	dds_device.delay_interval_ts.tv_sec = 0;
 
 	// Configure bit bang device
-	dds_bbspi_init(&dds_device, port);
-	dds_device.delay_interval_ts.tv_nsec = 50000L;
+
 
 	// Enable channels
-	int enabled_channels = DDS_CH0;
+
 	// Options we may want to allow
 	//   - Inverse sinc filter enable (bit 22)
 	//
 	int cfr1_settings = (1<<1); // Set SDIO to input only
-	int cfr2_settings = (1<<24); // Enable Amplitude Scaling
+	int cfr2_settings = (1<<24) | (1<<22) |(1<<5); // Enable Amplitude Scaling
 
 	// Configures REFCLK_OUT (PLL config) FIXME
-	int cfr3_settings = (1<<28) | // Low output current on refclk_out
-                   	  (1<<24) | // Setup VCO FIXME (FIXME)
-		                  (1<<19)  | // PLL Charge Pump Current (FIXME?)
-				  (1<<15) | // Bypass refclk divider (FIXME?)
-		                  (1<<8);   // Enable PLL
+	int cfr3_settings = (0x3<<28) | // High output current on refclk_out
+	                    (0x3<<24) | // Setup VCO to VCO3
+		                  (0x7<<19) | // PLL Charge Pump Current (FIXME?)
+		                  (1 << 15) | // Bypass ref_clk divider
+		                  (1 << 14) | // Reset Divider acts normally
+		                  (1<<8)    | // Enable PLL
+                   		(20<<1);// Multiplcation factor of 20 (20*25MHz = 500MHz)
+
 	// Make a profile from different amplitude, phase and frequency settings
-	int profile0 = dds_form_profile(0x3fff, 0x0, frequency2ftw(200E6, DDS_FS));
+	uint64_t profile0 = dds_form_profile(0x3fff, 0x0, frequency2ftw(10E6, DDS_FS));
 
 	// Setup CFR1
 	dds_device.ch_enable = enabled_channels;
 	dds_device.instruction = DDS_WRITE | DDS_CFR1;
-	dds_device.messages[0] = cfr1_settings;
+	dds_device.messages[1] = cfr1_settings;
 	dds_bbspi_write(&dds_device);
 
-	volatile int readVal; //This is the current value of port
-	readVal = *(volatile unsigned int*)(port);
-        printf("DDS after CFR1 = 0x%08x\n",readVal);
+	dds_bbspi_delay(&dds_device);
+	dds_bbspi_delay(&dds_device);
+	dds_bbspi_delay(&dds_device);
+	dds_bbspi_delay(&dds_device);
+	dds_bbspi_delay(&dds_device);
+	dds_bbspi_delay(&dds_device);
+	dds_bbspi_delay(&dds_device);
+	dds_bbspi_delay(&dds_device);
 
+	// Attempt a read
+	dds_device.instruction = DDS_READ | DDS_CFR1;
+	dds_device.messages[1] = 0;
+	dds_bbspi_write(&dds_device);
+
+	dds_bbspi_delay(&dds_device);
+	dds_bbspi_delay(&dds_device);
+	dds_bbspi_delay(&dds_device);
+	dds_bbspi_delay(&dds_device);
+	dds_bbspi_delay(&dds_device);
+	dds_bbspi_delay(&dds_device);
+	dds_bbspi_delay(&dds_device);
+	dds_bbspi_delay(&dds_device);
 
 	// Setup CFR2
 	dds_device.ch_enable = enabled_channels;
 	dds_device.instruction = DDS_WRITE | DDS_CFR2;
-	dds_device.messages[0] = cfr2_settings;
+	dds_device.messages[1] = cfr2_settings;
 	dds_bbspi_write(&dds_device);
+
+	dds_bbspi_delay(&dds_device);
+	dds_bbspi_delay(&dds_device);
+	dds_bbspi_delay(&dds_device);
+	dds_bbspi_delay(&dds_device);
+	dds_bbspi_delay(&dds_device);
+	dds_bbspi_delay(&dds_device);
+	dds_bbspi_delay(&dds_device);
+	dds_bbspi_delay(&dds_device);
+	dds_bbspi_delay(&dds_device);
 
 	// Setup CFR3
 	dds_device.ch_enable = enabled_channels;
 	dds_device.instruction = DDS_WRITE | DDS_CFR3;
-	dds_device.messages[0] = cfr3_settings;
+	dds_device.messages[1] = cfr3_settings;
 	dds_bbspi_write(&dds_device);
+
+	dds_bbspi_delay(&dds_device);
+	dds_bbspi_delay(&dds_device);
+	dds_bbspi_delay(&dds_device);
+	dds_bbspi_delay(&dds_device);
+	dds_bbspi_delay(&dds_device);
+	dds_bbspi_delay(&dds_device);
+	dds_bbspi_delay(&dds_device);
+	dds_bbspi_delay(&dds_device);
+	dds_bbspi_delay(&dds_device);
+	dds_bbspi_delay(&dds_device);
 
 	// Set profile0
 	dds_device.ch_enable = enabled_channels | DDS_EXTENDED_MESSAGE;
 	dds_device.instruction = DDS_WRITE | DDS_PROFILE_0;
-	dds_device.messages[0] = profile0;
+	dds_device.messages[1] = profile0;
 	dds_bbspi_write(&dds_device);
 
+	dds_bbspi_delay(&dds_device);
+	dds_bbspi_delay(&dds_device);
+	dds_bbspi_delay(&dds_device);
+
+	// Strobe IOUPDATE PIN to push data into active registers on AD9910
+	dds_bbspi_strobe_bit(&dds_device, DDS_IOUPDATE_PIN);
+
+	set_bit(&dds_device, LED_STATUSB_PIN, 0);
+
+#ifndef NONARM_TEST
 	//Unmap the memory and close /dev/memory
 	if (munmap(port, MAP_SIZE) == -1) {
 		printf("Unable to unmap port.\n");
@@ -104,5 +172,7 @@ int main() {
 		return -1;
 	}
 	close(fd);
+#endif
+
 	return 0;
 }
