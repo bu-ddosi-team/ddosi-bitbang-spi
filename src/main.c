@@ -59,16 +59,10 @@ int main() {
 	set_bit(&dds_device, LED_STATUSB_PIN, 1);
 	set_bit(&dds_device, LED_STATUSG_PIN, 1);
 
-	dds_device.delay_interval_ts.tv_nsec = 10000L;
-
-
-
 	printf("Setting up DDS\n");
-	dds_device.delay_interval_ts.tv_sec = 0;
 
 	// Configure bit bang device
 	send_dds_configuration(&dds_device, enabled_channels);
-
 
 	// Setup Single Tone Mode Profile 0 for all Channels Then Send
 	for (int i = 0; i < 6; i++) {
@@ -78,12 +72,6 @@ int main() {
 	}
 	// Send to profile 0 (only on enabled_channels)
 	send_dds_profile(&dds_device, enabled_channels);
-
-
-//	dds_device.messages[1] = ;
-
-	dds_bbspi_delay(&dds_device);
-	dds_bbspi_delay(&dds_device);
 
 	// Strobe IOUPDATE PIN to push data into active registers on AD9910
 	dds_bbspi_strobe_bit(&dds_device, DDS_IOUPDATE_PIN);
