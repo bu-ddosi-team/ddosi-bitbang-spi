@@ -44,6 +44,7 @@
 #define DDS_PROFILE_5 0x13
 #define DDS_PROFILE_6 0x14
 #define DDS_PROFILE_7 0x15
+#define DDS_FS (1.0E9)
 
 
 // Struct for maintianing information about the DDS SPI system
@@ -64,7 +65,7 @@ typedef struct {
 } dds_bbspi_dev;
 
 // helper function for setting bits based on value
-void set_bit(dds_bbspi_dev *dev, unsigned int pin, uint64_t value);
+void set_bit(dds_bbspi_dev *dev, unsigned int pin, unsigned int value);
 
 // intialize dds bitbanged spi device with the port.
 //void dds_bbspi_init( dds_bbspi_dev *dev , volatile int *port);
@@ -79,7 +80,7 @@ void dds_bbspi_write( dds_bbspi_dev *dev );
 // use nanosleep to delay. simple wrapper.
 void dds_bbspi_delay( dds_bbspi_dev *dev);
 
-// 
+//  Turn a bit of the port on and off for delaytime specified in dev
 void dds_bbspi_strobe_bit(dds_bbspi_dev *dev, unsigned int pin);
 
 void dds_bbspi_shiftout_instruction(dds_bbspi_dev *dev);
@@ -87,3 +88,7 @@ void dds_bbspi_shiftout_messages(dds_bbspi_dev *dev, unsigned int msg_len);
 
 uint64_t dds_form_profile(uint64_t asf, uint64_t pow, uint64_t ftw);
 uint32_t frequency2ftw(float f, float fs);
+
+void send_dds_configuration(dds_bbspi_dev *dds_device, unsigned int enabled_channels);
+void send_dds_profile(dds_bbspi_dev *dds_device, unsigned int enabled_channels);
+void load_profile_to_channel(dds_bbspi_dev *dds_device, uint32_t asf, uint64_t pow, float freq, unsigned int ch);

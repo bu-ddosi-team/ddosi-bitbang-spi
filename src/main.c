@@ -16,16 +16,18 @@
 #include <fcntl.h>    //PROT_READ, PROT_WRITE
 #include <unistd.h>   //device File IO
 
-#define DDS_FS (500.0E6)
+#define DDS_FS (1.0E9)
 
 //The GPIO bus address for the DDS signals
-unsigned long int PORT_ADDR=0x81210000;
+unsigned long int PORT_ADDR=GPIO0_PORT_ADDR;
 
 //Must allocate in increments of full blocks. The block size
 //for the RAM on the microZed is 4K, seems wasteful for 4 bytes,
 //but that's how it goes.
 #define MAP_SIZE 4096UL
+
 //#define NONARM_TEST
+
 int main() {
 	int enabled_channels = DDS_CH1;
 
@@ -65,97 +67,21 @@ int main() {
 	dds_device.delay_interval_ts.tv_sec = 0;
 
 	// Configure bit bang device
+	send_dds_configuration(&dds_device, enabled_channels);
 
 
-	// Enable channels
+	// Setup Single Tone Mode Profile 0 for all Channels Then Send
+	for (int i = 0; i < 6; i++) {
+		// Load the ASF (Amplitude Scaling Factor), POW (Phase Offset Word),
+		// Frequency (in Hz)) to the channel's messages section.
+		load_profile_to_channel(&dds_device, 0x3fff, 0x0, 10E6, i);
+	}
+	// Send to profile 0 (only on enabled_channels)
+	send_dds_profile(&dds_device, enabled_channels);
 
-	// Options we may want to allow
-	//   - Inverse sinc filter enable (bit 22)
-	//
-	int cfr1_settings = (1<<1); // Set SDIO to input only
-	int cfr2_settings = (1<<24) | (1<<22) |(1<<5); // Enable Amplitude Scaling
 
-	// Configures REFCLK_OUT (PLL config) FIXME
-	int cfr3_settings = (0x3<<28) | // High output current on refclk_out
-	                    (0x3<<24) | // Setup VCO to VCO3
-		                  (0x7<<19) | // PLL Charge Pump Current (FIXME?)
-		                  (1 << 15) | // Bypass ref_clk divider
-		                  (1 << 14) | // Reset Divider acts normally
-		                  (1<<8)    | // Enable PLL
-                   		(20<<1);// Multiplcation factor of 20 (20*25MHz = 500MHz)
+//	dds_device.messages[1] = ;
 
-	// Make a profile from different amplitude, phase and frequency settings
-	uint64_t profile0 = dds_form_profile(0x3fff, 0x0, frequency2ftw(10E6, DDS_FS));
-
-	// Setup CFR1
-	dds_device.ch_enable = enabled_channels;
-	dds_device.instruction = DDS_WRITE | DDS_CFR1;
-	dds_device.messages[1] = cfr1_settings;
-	dds_bbspi_write(&dds_device);
-
-	dds_bbspi_delay(&dds_device);
-	dds_bbspi_delay(&dds_device);
-	dds_bbspi_delay(&dds_device);
-	dds_bbspi_delay(&dds_device);
-	dds_bbspi_delay(&dds_device);
-	dds_bbspi_delay(&dds_device);
-	dds_bbspi_delay(&dds_device);
-	dds_bbspi_delay(&dds_device);
-
-	// Attempt a read
-	dds_device.instruction = DDS_READ | DDS_CFR1;
-	dds_device.messages[1] = 0;
-	dds_bbspi_write(&dds_device);
-
-	dds_bbspi_delay(&dds_device);
-	dds_bbspi_delay(&dds_device);
-	dds_bbspi_delay(&dds_device);
-	dds_bbspi_delay(&dds_device);
-	dds_bbspi_delay(&dds_device);
-	dds_bbspi_delay(&dds_device);
-	dds_bbspi_delay(&dds_device);
-	dds_bbspi_delay(&dds_device);
-
-	// Setup CFR2
-	dds_device.ch_enable = enabled_channels;
-	dds_device.instruction = DDS_WRITE | DDS_CFR2;
-	dds_device.messages[1] = cfr2_settings;
-	dds_bbspi_write(&dds_device);
-
-	dds_bbspi_delay(&dds_device);
-	dds_bbspi_delay(&dds_device);
-	dds_bbspi_delay(&dds_device);
-	dds_bbspi_delay(&dds_device);
-	dds_bbspi_delay(&dds_device);
-	dds_bbspi_delay(&dds_device);
-	dds_bbspi_delay(&dds_device);
-	dds_bbspi_delay(&dds_device);
-	dds_bbspi_delay(&dds_device);
-
-	// Setup CFR3
-	dds_device.ch_enable = enabled_channels;
-	dds_device.instruction = DDS_WRITE | DDS_CFR3;
-	dds_device.messages[1] = cfr3_settings;
-	dds_bbspi_write(&dds_device);
-
-	dds_bbspi_delay(&dds_device);
-	dds_bbspi_delay(&dds_device);
-	dds_bbspi_delay(&dds_device);
-	dds_bbspi_delay(&dds_device);
-	dds_bbspi_delay(&dds_device);
-	dds_bbspi_delay(&dds_device);
-	dds_bbspi_delay(&dds_device);
-	dds_bbspi_delay(&dds_device);
-	dds_bbspi_delay(&dds_device);
-	dds_bbspi_delay(&dds_device);
-
-	// Set profile0
-	dds_device.ch_enable = enabled_channels | DDS_EXTENDED_MESSAGE;
-	dds_device.instruction = DDS_WRITE | DDS_PROFILE_0;
-	dds_device.messages[1] = profile0;
-	dds_bbspi_write(&dds_device);
-
-	dds_bbspi_delay(&dds_device);
 	dds_bbspi_delay(&dds_device);
 	dds_bbspi_delay(&dds_device);
 

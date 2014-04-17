@@ -5,7 +5,7 @@ GCC=arm-xilinx-linux-gnueabi-gcc
 CFLAGS= --std=c99 -Iinclude -static
 SRC_DIR=src
 all:
-	$(GCC) $(CFLAGS) $(SRC_DIR)/main.c $(SRC_DIR)/ddosi/bitbang-spi.c -o main
+	$(GCC) $(CFLAGS) $(SRC_DIR)/main.c $(SRC_DIR)/ddosi/bitbang-spi.c -o bin/main
 
 clean:
-	rm main
+	rm bin/main

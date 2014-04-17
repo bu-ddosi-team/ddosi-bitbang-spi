@@ -8,8 +8,7 @@
  */
 #define DDOSI_DSAU_REVA
 
-#define GPIO0_ADDRESS (0x4200) // FIXME
-
+#define GPIO0_PORT_ADDR 0x81210000
 // Define Constants for DDS Controls, n represents channel.
 #define DDS_CS_OFFSET (3)
 #define DDS_CS_PIN(n) (DDS_CS_OFFSET + n)
